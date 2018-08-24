@@ -1,0 +1,96 @@
+Goroutines and Channels
+chapter 8
+
+
+* Intro
+
+Go facilitates 2 types of concurrency programming
+
+- Communicating Sequential Processes (CSP)
+- Shared Memory/Threading (ch9)
+
+CSP are channels and goroutines, seen in this chapter
+
+* Goroutines
+
+- Each concurrent activity in go is called a _goroutine_
+- The _go_ statement starts a goroutine
+
+.code smallsnippets.go /START1 OMIT/,/END1 OMIT/
+
+* Spinner example
+
+.play -edit spinner.go /START OMIT/,/END OMIT/
+
+* Reverb example (main)
+
+.code reverb.go /STARTMAIN OMIT/,/ENDMAIN OMIT/
+
+* Reverb example (meat)
+
+.play -edit reverb.go /START OMIT/,/END OMIT/
+
+* Channels
+
+Goroutines are the activities, Channels are the connections between them.
+
+   ch := make(chan int) // ch is a reference to channel with type int
+
+   ch <- y              // a send statement to a channel
+
+   x = <- ch            // receive a value from a channel
+   <- ch                // receive a value from a channel, but discard value
+
+   close(ch)            // no more values can be sent to ch after this. otherwise :panic:
+
+* Unbuffered and Buffered channels
+
+*make* takes an optional 3rd argument: the size of the channel's buffer
+
+   ch := make(chan int)     // Unbuffered channel
+   ch := make(chan int, 0)  // Unbuffered channel
+   ch := make(chan int, 3)  // Buffered channel with capacity 3
+
+An _unbuffered_ channel will block the waiting end of the communication
+If a goroutine is blocked on receive, it will wait until someone sends
+If a goroutine is blocked on send, it will wait until someone receives
+
+
+* Unbuffered wait example
+
+.play -edit unbuf.go /START OMIT/,/END OMIT/
+
+* Pipelines with channels
+
+.play -edit pipeline2.go /START OMIT/,/END OMIT/
+
+* Unidirectional channel types
+
+In order to make intent explicit, Go allows you to declare channels as send-only or receive-only.
+You can assign channels to these variables, but once they are cast, there's no going back.
+
+   func counter(out chan<- int)     // send-only channel
+   func squarer(in <-chan int)      // receive only channel
+
+* Buffered Channels
+
+Buffered channels are channel queues with a specific capacity.
+The queue increases on a send and dequeues on a receive.
+If a queue is full at the time of sending, it will block that operation.
+
+.code -edit smallsnippets.go /START2 OMIT/,/END2 OMIT/
+
+Not making the above a buffered channel would create a *goroutine leak*
+
+* Patterns for looping in parallel
+
+.link https://github.com/adonovan/gopl.io/blob/master/ch8/thumbnail/thumbnail_test.go thumbnail_test.go
+
+* Multiplexing channels with select
+.play -edit select.go /func fibonacci/,
+
+* Default selection
+.play -edit default-select.go /func main/,
+
+* Select with buffered channels
+.play -edit buffer-select.go /func main/,
